@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+import time
 import pygame as pg
 
 
@@ -41,6 +42,13 @@ def main():
     bb_rct = bb_img.get_rect()
     bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
     vx, vy = +5, -5
+    gob_img = pg.Surface((1100, 650))
+    gob_img.set_alpha(128)
+    pg.draw.rect(gob_img, (0, 0, 0), pg.Rect(0, 0, 800, 1600))
+    fonto = pg.font.Font(None, 80)
+    txt = fonto.render("GameOver", True, (255, 0, 0))
+    
+
 
     clock = pg.time.Clock()
     tmr = 0
@@ -50,9 +58,12 @@ def main():
                 return
         screen.blit(bg_img, [0, 0]) 
         if kk_rct.colliderect(bb_rct): #こうかとんと爆弾が重なっていたら
-            print("GameOver")
+            screen.blit(gob_img, (0, 0))
+            screen.blit(txt, [420, 280])
+            pg.display.flip()
+            time.sleep(5)
+            print("gameover")
             return
-
 
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0] #横座標, 縦座標
@@ -64,6 +75,7 @@ def main():
         #     sum_mv[0] -= 5
         # if key_lst[pg.K_RIGHT]:
         #     sum_mv[0] += 5
+
         for key, tpl in DELTA.items():
             if key_lst[key]:
                 sum_mv[0] += tpl[0] #横方向
