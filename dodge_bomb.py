@@ -26,30 +26,47 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
         yoko = False
     if obj_rct.top < 0 or HEIGHT < obj_rct.bottom:
         tate = False
-    return yoko, tate    
+    return yoko, tate  
+
+
+def create_bomb_images_and_accs() -> tuple[list[pg.Surface], list[int]]:
+    """
+    爆弾の拡大Surfaceと加速度のリストを返す
+    """
+    bb_imgs = []
+    bb_accs = [a for a in range(1, 11)]
+
+    for r in range(1, 11):
+        bb_img = pg.Surface((20 * r, 20 * r), pg.SRCALPHA)
+        pg.draw.circle(bb_img, (255, 0, 0), (10 * r, 10 * r), 10 * r)
+        bb_imgs.append(bb_img)
+    return bb_imgs, bb_accs
 
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
+
     bg_img = pg.image.load("fig/pg_bg.jpg")    
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
+    bb_imgs, bb_accs = create_bomb_images_and_accs()
     bb_img = pg.Surface((20, 20))
     bb_img.set_colorkey((0, 0, 0))
     pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)
     bb_rct = bb_img.get_rect()
     bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
     vx, vy = +5, -5
+
     gob_img = pg.Surface((1100, 650))
     gob_img.set_alpha(128)
     pg.draw.rect(gob_img, (0, 0, 0), pg.Rect(0, 0, 800, 1600))
+
     fonto = pg.font.Font(None, 80)
     txt = fonto.render("GameOver", True, (255, 255, 255))
-    cry_kk_img = pg.image.load("fig\8.png")
-    
 
+    cry_kk_img = pg.image.load("fig\8.png")
 
     clock = pg.time.Clock()
     tmr = 0
@@ -66,18 +83,12 @@ def main():
             pg.display.flip()
             time.sleep(5)
             return
-
+        
+        avx = vx * bb_accs[min(tmr//500, 9)]
+        avy = vy * bb_accs[min(tmr//500, 9)]
+        bb_img = bb_imgs[min(tmr//500, 9)]
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0] #横座標, 縦座標
-        # if key_lst[pg.K_UP]:
-        #     sum_mv[1] -= 5
-        # if key_lst[pg.K_DOWN]:
-        #     sum_mv[1] += 5
-        # if key_lst[pg.K_LEFT]:
-        #     sum_mv[0] -= 5
-        # if key_lst[pg.K_RIGHT]:
-        #     sum_mv[0] += 5
-
         for key, tpl in DELTA.items():
             if key_lst[key]:
                 sum_mv[0] += tpl[0] #横方向
@@ -87,7 +98,7 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
 
-        bb_rct.move_ip(vx, vy)
+        bb_rct.move_ip(avx, avy)
         yoko, tate = check_bound(bb_rct)
         if not yoko:
             vx *= -1
